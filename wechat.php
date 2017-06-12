@@ -12,7 +12,8 @@ function wechat_oauth_redirect(){
     exit;
 }
 
-function get_wechat_access_token(){
+function get_wechat_access_token( $code = null ){
+    $code = $code ? $code : $_GET['code'];
     $url = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' . WX_APPID . '&secret=' . WX_APPSECRET . '&code=' . $code . '&grant_type=authorization_code';
 
     return json_decode(file_get_contents($url),true);
@@ -24,7 +25,7 @@ function wechat_oauth(){
 
     $code = $_GET['code'];
 
-    $json_token = get_wechat_access_token();
+    $json_token = get_wechat_access_token( $code );
 
     $info_url = 'https://api.weixin.qq.com/sns/userinfo?access_token=' . $json_token['access_token'] . '&openid=' . $json_token['openid'];
 
@@ -49,7 +50,7 @@ function wechat_oauth(){
                 'user_login' => $login_name,
                 'display_name' => $username,
                 'user_pass' => $random_password,
-                'nick_name' => $username
+                'nickname' => $username
             );
             $user_id = wp_insert_user( $userdata );
             wp_signon(array('user_login'=>$login_name,'user_password'=>$random_password),false);
@@ -73,7 +74,7 @@ if (isset($_GET['code'])){
 function wechat_oauth_url(){
     $_SESSION ['state'] = md5 ( uniqid ( rand (), true ) );
     $appkey = '';
-    $url = 'https://open.weixin.qq.com/connect/qrconnect?appid='. WX_APPID .'&redirect_uri='. urlencode (get_template_directory_uri() ) .'/wechat.php&response_type=code&scope=snsapi_login&state=' . $_SESSION ['state'] . '#wechat_redirect';
+    $url = 'https://open.weixin.qq.com/connect/qrconnect?appid='. WX_APPID .'&redirect_uri='. urlencode (get_template_directory_uri() . '/' ) .'wechat.php&response_type=code&scope=snsapi_login&state=' . $_SESSION ['state'] . '#wechat_redirect';
     return $url;
 }
 
